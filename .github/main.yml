@@ -1,31 +1,29 @@
-name: Start Ngrok Server (Windows)
+name: Start Ngrok with Updated Version
 
 on:
   workflow_dispatch:
 
 jobs:
-  start-server:
+  serve:
     runs-on: windows-latest
 
     steps:
-      - name: Download ngrok
+      - name: Download latest ngrok
         run: |
-          Invoke-WebRequest -Uri https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-          Expand-Archive ngrok.zip -DestinationPath .
-          Rename-Item .\ngrok.exe .\ngrok_windows.exe
+          Invoke-WebRequest -Uri https://bin.ngrok.com/ngrok/ngrok.exe -OutFile ngrok.exe
 
-      - name: Start Local Server (Python)
+      - name: Run Local HTTP Server
         run: |
           python -m http.server 8080 &
           Start-Sleep -Seconds 5
 
-      - name: Run ngrok
+      - name: Start ngrok
         run: |
-          .\ngrok_windows.exe authtoken $env:NGROK_AUTH_TOKEN
-          Start-Process -FilePath ".\ngrok_windows.exe" -ArgumentList "http 8080" -NoNewWindow
+          .\ngrok.exe config add-authtoken $env:NGROK_AUTH_TOKEN
+          Start-Process -FilePath ".\ngrok.exe" -ArgumentList "http 8080" -NoNewWindow
           Start-Sleep -Seconds 10
 
-      - name: Get public URL
+      - name: Get ngrok public URL
         run: |
           $response = Invoke-WebRequest http://127.0.0.1:4040/api/tunnels
           $publicUrl = ($response.Content | ConvertFrom-Json).tunnels[0].public_url
