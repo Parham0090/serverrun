@@ -1,0 +1,28 @@
+name: Start server with LocalTunnel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  serve:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js & localtunnel
+        run: |
+          sudo apt update
+          sudo apt install nodejs npm -y
+          npm install -g localtunnel
+
+      - name: Start HTTP server
+        run: |
+          nohup python3 -m http.server 8080 &
+
+      - name: Start LocalTunnel
+        run: |
+          nohup lt --port 8080 --subdomain testserver123 > tunnel.log 2>&1 &
+          sleep 10
+          cat tunnel.log | grep https
